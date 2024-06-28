@@ -1,0 +1,34 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1719603691132,
+      "tag": "0000_minor_solo",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1719605067226,
+      "tag": "0001_certain_rhodey",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1719605266683,
+      "tag": "0002_even_inhumans",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1719607058960,
+      "tag": "0003_small_wallow",
+      "breakpoints": true
+    }
+  ]
+}
