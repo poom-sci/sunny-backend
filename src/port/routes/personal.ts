@@ -87,6 +87,7 @@ const personalController = new Elysia({
     logger.info("test", uid);
 
     const user = await ctx.domain.personal.getPersonalByFirebaseUid(uid);
+    console.log("aasdasdfasdf", user);
 
     if (!user) {
       throw new NotFoundError("User not found.");
@@ -103,13 +104,17 @@ const personalController = new Elysia({
 
     const user = await ctx.domain.personal.getPersonalByFirebaseUid(uid);
 
+    console.log("----", user);
+
     if (!user) {
       throw new NotFoundError("User not found.");
     }
 
     if (!user.age) {
+      console.log("12312");
       return { isIntroComplete: false };
     }
+    console.log("aaaaa");
 
     return { isIntroComplete: true };
   })
@@ -145,7 +150,10 @@ const personalController = new Elysia({
       sunnyCategory
     });
 
+    const oldFutureMe = await ctx.domain.futureMe.getFutureMeByUid(uid);
+
     const upsertFutureMe = await ctx.domain.futureMe.upsertFutureMe({
+      id: oldFutureMe?.id,
       uid: uid,
       title: futureMe,
       ideal: futureMeIdeal
