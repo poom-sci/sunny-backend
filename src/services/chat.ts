@@ -127,14 +127,33 @@ export const createSummaryChat = async (uid: string, date?: string) => {
 
         data: {
           user_name: user.userName,
-          chat_today_summary: response
+          chat_today_summary: response.data.chat_summary
         }
       });
       console.log("----3");
 
-      console.log("response", response);
+      // console.log("response", response);
 
-      console.log("adfasdf", responseColorOfTheDay);
+      console.log("test", response.data.chat_summary);
+
+      // console.log()
+
+      console.log(
+        "adfasdf",
+        responseColorOfTheDay.data.major_mood,
+        responseColorOfTheDay.data.minor_mood
+      );
+
+      const summaryData = await summary.createSummary({
+        uid,
+        chatId: oldChat[0].id,
+        date: today,
+        color: responseColorOfTheDay.data.major_mood,
+        color1: responseColorOfTheDay.data.minor_mood,
+        summary: response.data.chat_summary,
+        isActive: true
+      });
+      return summaryData;
     } else {
       throw new Error("chat not found");
     }
