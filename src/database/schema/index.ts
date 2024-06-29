@@ -4,6 +4,7 @@ import { chat, chatCreatedByType } from "./chat";
 import { message, messageCreatedByType, messageStatus } from "./message";
 import { goal } from "./goal";
 import { futureMe } from "./futureMe";
+import { mood } from "./mood";
 
 export {
   registerTypeEnum,
@@ -15,5 +16,6 @@ export {
   messageCreatedByType,
   messageStatus,
   goal,
-  futureMe
+  futureMe,
+  mood
 };

@@ -29,6 +29,27 @@
       "when": 1719607058960,
       "tag": "0003_small_wallow",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1719678679191,
+      "tag": "0004_cold_firedrake",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1719678941130,
+      "tag": "0005_far_fantastic_four",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1719682268376,
+      "tag": "0006_acoustic_revanche",
+      "breakpoints": true
     }
   ]
 }

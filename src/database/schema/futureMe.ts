@@ -15,7 +15,7 @@ export const futureMe = pg.pgTable(
   },
   (futureMe) => {
     return {
-      futureMeUidIndex: pg.uniqueIndex("futureMe_uid_idx").on(futureMe.uid)
+      futureMeUidIndex: pg.index("futureMe_uid_idx").on(futureMe.uid)
     };
   }
 );

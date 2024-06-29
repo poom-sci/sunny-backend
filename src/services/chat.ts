@@ -1,6 +1,7 @@
 import chatDomain from "src/database/domain/chat";
 import summary from "src/database/domain/summary";
 import message from "src/database/domain/message";
+import personal from "src/database/domain/personal";
 import { publishToQueue } from "src/services/rabbit";
 import {
   createOrUpdateChat,
@@ -62,7 +63,7 @@ export const createSendMessageByUser = async (
   await createMessage(chatId, createdMessage.id, createdMessage);
 
   // publish message to message processing
-  await publishToQueue("message-processing", {
+  await publishToQueue("message-processing1", {
     messageId: createdMessage.id,
     uid: uid,
     chatId: chatId,
@@ -70,6 +71,92 @@ export const createSendMessageByUser = async (
   });
 
   return createdMessage;
+};
+
+export const createSummaryChat = async (uid: string, date?: string) => {
+  try {
+    let today = new Date().toISOString().split("T")[0]; // รูปแบบ 'YYYY-MM-DD'
+    if (date) {
+      today = date;
+    }
+
+    const user = await personal.getPersonalByFirebaseUid(uid);
+    if (!user) {
+      throw new Error("user not found");
+    }
+
+    const oldChat = await chatDomain.getChatsByFilter({
+      uid,
+      date: today
+    });
+
+    console.log("asdfasdf", oldChat);
+
+    if (oldChat.length > 0) {
+      const chatTodayMessage = await message.getMessagesByChatId(oldChat[0].id);
+
+      const chatTodayMap = chatTodayMessage.map((message) => {
+        if (message.status == "success") {
+          if (message.createdBy == "system") {
+            return "โดย sunny: " + message.text;
+          } else {
+            return "โดย " + user.userName + ": " + message.text;
+          }
+        }
+        return "";
+      });
+
+      const summaryText = chatTodayMap.join("\n");
+      console.log("----1");
+      const response = await axios.request({
+        baseURL: "https://typhoon-service-3undgy4acq-as.a.run.app",
+        method: "POST",
+        url: "/summarize_dialy_chat",
+
+        data: {
+          user_name: user.userName,
+          chat_today: summaryText
+        }
+      });
+      console.log("----2", response);
+
+      const responseColorOfTheDay = await axios.request({
+        baseURL: "https://typhoon-service-3undgy4acq-as.a.run.app",
+        method: "POST",
+        url: "/color_of_the_day",
+
+        data: {
+          user_name: user.userName,
+          chat_today_summary: response
+        }
+      });
+      console.log("----3");
+
+      console.log("response", response);
+
+      console.log("adfasdf", responseColorOfTheDay);
+    } else {
+      throw new Error("chat not found");
+    }
+  } catch (error) {
+    console.log("erre", error);
+  }
+};
+
+export const getAllChatsSummary = async (uid: string) => {
+  const allChat = await chatDomain.getChatsByFilter({
+    uid
+  });
+
+  const allChatMap = allChat.map((chat) => {
+    return chat.id;
+  });
+
+  const allChatSummary = await summary.getAllSummariesByListOfChatId(
+    allChatMap
+  );
+
+  return allChatSummary;
 };
 
 export const processMessageByUser = async (
@@ -104,40 +191,68 @@ export const processMessageByUser = async (
 
   let answer = "";
   try {
+    // console.log("asdasdas", uid);
+    const user = await personal.getPersonalByFirebaseUid(uid);
+    if (!user) {
+      throw new Error("user not found");
+    }
+
+    console.log("asdfasdf", user);
+
     // update message status in Firebase
     await updateMessageStatus(chatId, messageId, "processing");
 
     // call chatbot api to get response
     const response = await axios.request({
-      baseURL: "http://0.0.0.0:8081",
+      baseURL: "https://typhoon-service-3undgy4acq-as.a.run.app",
       method: "POST",
-      url: "/multi-chain",
+      url: "/chat",
 
       data: {
-        name: "poom",
-        messages: [{ role: "user", content: text }]
+        chatId: chatId,
+        input_text: text,
+        user_name: user.userName,
+        personality:
+          "ชอบสี" +
+          user.color +
+          "อายุ" +
+          user.age +
+          " เพศ" +
+          user.gender +
+          " สนใจให้ sunny เป็น" +
+          user.sunnyCategory,
+
+        selected_mood: "string"
       }
     });
 
     console.log("response", response.data.response);
-    answer = response.data.response.content;
+    answer = response.data.response;
+
+    console.log("answer", answer);
 
     // update message status
     const updatedSystemMessage = await message.updateMessage(
       createdMessageAnswer.id,
       {
         text: answer,
+
         status: "success"
       }
     );
-
+    console.log("updatedSystemMessage", updatedSystemMessage);
     // update message status in Firebase
-    await updateMessageStatus(chatId, createdMessageAnswer.id, "success");
+    await updateMessageStatus(
+      chatId,
+      createdMessageAnswer.id,
+      "success",
+      answer
+    );
 
     // publish message to message success if success
   } catch (error) {
     console.log("erre", error);
-    await publishToQueue("message-failed", {
+    await publishToQueue("message-failed1", {
       messageId: updatedMessage.id,
       uid: uid,
       chatId: chatId
@@ -156,7 +271,7 @@ export const processMessageByUser = async (
     await updateMessageStatus(chatId, createdMessageAnswer.id, "failed");
     return "";
   } finally {
-    await publishToQueue("message-success", {
+    await publishToQueue("message-success1", {
       messageId: updatedMessage.id,
       uid: uid,
       chatId: chatId,

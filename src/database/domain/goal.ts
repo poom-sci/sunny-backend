@@ -112,10 +112,9 @@ async function getGoalByUid(uid: string) {
   const result = await postgres
     .select()
     .from(schema.goal)
-    .where(and(eq(schema.goal.uid, uid), eq(schema.goal.isActive, true)))
-    .limit(1);
+    .where(and(eq(schema.goal.uid, uid), eq(schema.goal.isActive, true)));
 
-  return result[0] || null;
+  return result || null;
 }
 
 // Get goals by filter

@@ -17,7 +17,7 @@ export const goal = pg.pgTable(
   },
   (goal) => {
     return {
-      goalUidIndex: pg.uniqueIndex("goal_uid_idx").on(goal.uid)
+      goalUidIndex: pg.index("goal_uid_idx").on(goal.uid)
     };
   }
 );

@@ -4,7 +4,7 @@ import { processMessageByUser } from "src/services/chat";
 
 export default async () => {
   rabbitService.subscribeQueue(
-    "message-processing",
+    "message-processing1",
     async (data: {
       messageId: string;
       uid: string;

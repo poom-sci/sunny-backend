@@ -1,13 +1,15 @@
 import postgres from "src/loaders/postgresql";
 import * as schema from "src/database/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 
 // Interface สำหรับข้อมูลที่จะใช้ในการสร้างหรืออัปเดต summary
 interface SummaryInput {
   uid: string;
+  chatId: string;
   date: string;
   color: string;
+  color1: string;
   summary?: string;
   isActive?: boolean;
 }
@@ -19,7 +21,8 @@ async function createSummary(input: SummaryInput) {
     .values({
       id: uuidv4(),
       ...input,
-      date: new Date(input.date).toISOString().split("T")[0]
+      createdAt: new Date(),
+      updatedAt: new Date()
     })
     .returning();
 
@@ -55,7 +58,10 @@ async function updateSummary(id: string, input: Partial<SummaryInput>) {
 
   const result = await postgres
     .update(schema.summary)
-    .set(updateData)
+    .set({
+      ...updateData,
+      updatedAt: new Date()
+    })
     .where(eq(schema.summary.id, id))
     .returning();
 
@@ -80,17 +86,19 @@ async function upsertSummary(input: SummaryInput & { id?: string }) {
     .values({
       id: input.id || uuidv4(),
       ...input,
-      date: new Date(input.date).toISOString().split("T")[0]
+      updatedAt: new Date(),
+      createdAt: new Date()
     })
     .onConflictDoUpdate({
       target: schema.summary.id,
       set: {
-        uid: input.uid,
+        updatedAt: new Date(),
+        chatId: input.chatId,
         date: new Date(input.date).toISOString().split("T")[0],
         color: input.color,
+        color1: input.color1,
         summary: input.summary,
-        isActive: input.isActive,
-        updatedAt: sql`CURRENT_TIMESTAMP`
+        isActive: input.isActive
       }
     })
     .returning();
@@ -109,20 +117,57 @@ async function getSummaryByUid(uid: string) {
   return result[0] || null;
 }
 
-// Get summaries by date range
-async function getSummariesByDateRange(startDate: string, endDate: string) {
-  return await postgres
+// Get summaries by filter
+async function getSummariesByFilter(filters: Partial<SummaryInput>) {
+  let query = postgres.select().from(schema.summary);
+
+  if (filters.uid) {
+    query = query.where(eq(schema.summary.uid, filters.uid));
+  }
+
+  if (filters.chatId) {
+    query = query.where(eq(schema.summary.chatId, filters.chatId));
+  }
+
+  if (filters.date) {
+    query = query.where(
+      eq(
+        schema.summary.date,
+        new Date(filters.date).toISOString().split("T")[0]
+      )
+    );
+  }
+
+  if (filters.color) {
+    query = query.where(eq(schema.summary.color, filters.color));
+  }
+
+  if (filters.color1) {
+    query = query.where(eq(schema.summary.color1, filters.color1));
+  }
+
+  if (filters.summary) {
+    query = query.where(eq(schema.summary.summary, filters.summary));
+  }
+
+  if (filters.isActive !== undefined) {
+    query = query.where(eq(schema.summary.isActive, filters.isActive));
+  }
+
+  const result = await query;
+  return result;
+}
+
+const getAllSummariesByListOfChatId = async (chatIds: string[]) => {
+  const result = await postgres
     .select()
     .from(schema.summary)
-    .where(
-      and(
-        sql`${schema.summary.date} >= ${startDate}`,
-        sql`${schema.summary.date} <= ${endDate}`,
-        eq(schema.summary.isActive, true)
-      )
-    )
-    .orderBy(schema.summary.date);
-}
+    .where(inArray(schema.summary.chatId, chatIds))
+    // .where(schema.summary.chatId.in(chatIds))
+    .orderBy(desc(schema.summary.createdAt));
+
+  return result;
+};
 
 export default {
   createSummary,
@@ -132,5 +177,6 @@ export default {
   deleteSummary,
   upsertSummary,
   getSummaryByUid,
-  getSummariesByDateRange
+  getSummariesByFilter,
+  getAllSummariesByListOfChatId
 };

@@ -164,6 +164,141 @@ const personalController = new Elysia({
       data: updatedUser,
       futureMe: upsertFutureMe
     };
+  })
+  .get("/mood/week/:uid", async (ctx: Ctx) => {
+    const {
+      uid
+    }: {
+      uid: string;
+    } = ctx.params;
+
+    const mood = await ctx.service.mood.getMoodCurrentWeek(uid);
+
+    if (!mood) {
+      return { mood: null };
+      // throw new NotFoundError("mood not found.");
+    }
+
+    return { mood: mood };
+  })
+  .post("/mood/:uid", async (ctx: Ctx) => {
+    const {
+      uid,
+      play,
+      work,
+      study,
+      relationship,
+      health
+    }: {
+      uid: string;
+      play: number;
+      work: number;
+      study: number;
+      relationship: number;
+      health: number;
+    } = ctx.body as any;
+
+    const user = await ctx.domain.personal.getPersonalByFirebaseUid(uid);
+
+    if (!user) {
+      throw new NotFoundError("User not found.");
+    }
+
+    const mood = await ctx.service.mood.createMood(uid, {
+      play,
+      work,
+      study,
+      relationship,
+      health
+    });
+
+    return {
+      detail: "Mood updated.",
+      data: mood
+    };
+  })
+  .post("/summary", async (ctx: Ctx) => {
+    const {
+      uid,
+      date
+    }: {
+      uid: string;
+      date: string;
+    } = ctx.body as any;
+
+    const summary = await ctx.service.chat.createSummaryChat(uid, date);
+
+    return {
+      detail: "Summary created.",
+      data: summary
+    };
+  })
+  .get("/summary/all/:uid", async (ctx: Ctx) => {
+    const {
+      uid
+    }: {
+      uid: string;
+    } = ctx.params;
+
+    const summary = await ctx.service.chat.getAllChatsSummary(uid);
+
+    return {
+      detail: "Summary created.",
+      data: summary
+    };
+  })
+  .get("/goal/:uid", async (ctx: Ctx) => {
+    const {
+      uid
+    }: {
+      uid: string;
+    } = ctx.params;
+
+    const goal = await ctx.service.goal.getGoal(uid);
+
+    return {
+      detail: "Goal created.",
+      data: goal
+    };
+  })
+  .post("/goal", async (ctx: Ctx) => {
+    const {
+      uid,
+      title,
+      description,
+      duration
+    }: {
+      uid: string;
+      title: string;
+      description: string;
+      duration: string;
+    } = ctx.body as any;
+
+    const goal = await ctx.service.goal.createGoal({
+      uid,
+      title,
+      description,
+      duration
+    });
+
+    return {
+      detail: "Goal created.",
+      data: goal
+    };
+  })
+  .get("/goal-detail/:id", async (ctx: Ctx) => {
+    const {
+      id
+    }: {
+      id: string;
+    } = ctx.params;
+
+    const goal = await ctx.service.goal.getGoalById(id);
+
+    return {
+      detail: "Goal created.",
+      data: goal
+    };
   });
 
 export default personalController;

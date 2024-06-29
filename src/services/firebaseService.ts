@@ -37,13 +37,22 @@ export const createMessage = async (
 export const updateMessageStatus = async (
   chatId: string,
   messageId: string,
-  status: string
+  status: string,
+  text?: string
 ) => {
   const messageRef = db.ref(`Chat/${chatId}/messages/${messageId}`);
-  await messageRef.update({
-    status: status,
-    updated_at: new Date().toISOString() // Ensure updated_at is set
-  });
+  if (text) {
+    await messageRef.update({
+      status: status,
+      text: text,
+      updated_at: new Date().toISOString() // Ensure updated_at is set
+    });
+  } else {
+    await messageRef.update({
+      status: status,
+      updated_at: new Date().toISOString() // Ensure updated_at is set
+    });
+  }
 };
 
 export const getChatData = async (chatId: string) => {

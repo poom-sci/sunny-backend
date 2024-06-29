@@ -4,7 +4,7 @@ import { updateSuccessMessage } from "src/services/chat";
 
 export default async () => {
   rabbitService.subscribeQueue(
-    "message-success",
+    "message-success1",
     async (data: {
       messageId: string;
       uid: string;
