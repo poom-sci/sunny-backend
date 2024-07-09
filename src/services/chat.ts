@@ -16,10 +16,14 @@ export const getTodayChat = async (uid: string, date: string) => {
     today = date;
   }
 
+  // console.log("oldChat", uid);
+
   const oldChat = await chatDomain.getChatsByFilter({
     uid,
     date: today
   });
+
+  // console.log("---", oldChat);
 
   if (oldChat.length > 0) {
     return oldChat[0];

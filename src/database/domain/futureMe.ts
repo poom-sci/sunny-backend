@@ -114,21 +114,28 @@ async function getFutureMeByUid(uid: string) {
 async function getFutureMesByFilter(filters: Partial<FutureMeInput>) {
   let query = postgres.select().from(schema.futureMe);
 
+  const queries: any[] = [];
   if (filters.uid) {
-    query = query.where(eq(schema.futureMe.uid, filters.uid));
+    // query = query.where(eq(schema.futureMe.uid, filters.uid));
+    queries.push(eq(schema.futureMe.uid, filters.uid));
   }
 
   if (filters.title) {
-    query = query.where(eq(schema.futureMe.title, filters.title));
+    // query = query.where(eq(schema.futureMe.title, filters.title));
+    queries.push(eq(schema.futureMe.title, filters.title));
   }
 
   if (filters.ideal) {
-    query = query.where(eq(schema.futureMe.ideal, filters.ideal));
+    // query = query.where(eq(schema.futureMe.ideal, filters.ideal));
+    queries.push(eq(schema.futureMe.ideal, filters.ideal));
   }
 
   if (filters.isActive !== undefined) {
-    query = query.where(eq(schema.futureMe.isActive, filters.isActive));
+    // query = query.where(eq(schema.futureMe.isActive, filters.isActive));
+    queries.push(eq(schema.futureMe.isActive, filters.isActive));
   }
+
+  query = query.where(and(...queries));
 
   const result = await query;
   return result;

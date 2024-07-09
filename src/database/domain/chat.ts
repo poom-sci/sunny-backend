@@ -103,29 +103,28 @@ async function getChatByUid(uid: string) {
 
   return result[0] || null;
 }
-
-// Get chats by filter
 async function getChatsByFilter(filters: Partial<ChatInput>) {
   let query = postgres.select().from(schema.chat);
 
+  const queries: any[] = [];
   if (filters.uid) {
-    query = query.where(eq(schema.chat.uid, filters.uid));
+    queries.push(eq(schema.chat.uid, filters.uid));
   }
 
   if (filters.date) {
-    query = query.where(
-      eq(schema.chat.date, new Date(filters.date).toISOString().split("T")[0])
-    );
+    const formattedDate = new Date(filters.date).toISOString().split("T")[0];
+    queries.push(eq(schema.chat.date, formattedDate));
   }
 
   if (filters.createdBy) {
-    query = query.where(eq(schema.chat.createdBy, filters.createdBy));
+    queries.push(eq(schema.chat.createdBy, filters.createdBy));
   }
 
   if (filters.isActive !== undefined) {
-    query = query.where(eq(schema.chat.isActive, filters.isActive));
+    queries.push(eq(schema.chat.isActive, filters.isActive));
   }
 
+  query = query.where(and(...queries));
   const result = await query;
   return result;
 }
