@@ -5,6 +5,7 @@ import { message, messageCreatedByType, messageStatus } from "./message";
 import { goal } from "./goal";
 import { futureMe } from "./futureMe";
 import { mood } from "./mood";
+import { notification } from "./notification";
 
 export {
   registerTypeEnum,
@@ -17,5 +18,6 @@ export {
   messageStatus,
   goal,
   futureMe,
-  mood
+  mood,
+  notification
 };

@@ -1,0 +1,1 @@
+ALTER TABLE "notification" ALTER COLUMN "notification_token_id" SET DATA TYPE text;
